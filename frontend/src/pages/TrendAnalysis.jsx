@@ -9,20 +9,21 @@ export default function TrendAnalysis() {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    axios.get(`${API_URL}/api/score/history`).then((res) => {
-      setHistory(res.data.history || []);
-      setLoading(false);
-    });
-  }, []);
+  const loadHistory = async () => {
+    const res = await axios.get(`${API_URL}/api/score/history`);
+    setHistory(res.data.history || []);
+  };
 
   const refreshAndReload = async () => {
     setLoading(true);
-    await axios.get(`${API_URL}/api/score/explain`); // triggers a fresh snapshot
-    const res = await axios.get(`${API_URL}/api/score/history`);
-    setHistory(res.data.history || []);
+    await axios.get(`${API_URL}/api/score/explain`); // forces a fresh snapshot
+    await loadHistory();
     setLoading(false);
   };
+
+  useEffect(() => {
+    loadHistory().then(() => setLoading(false));
+  }, []);
 
   if (loading) return <div className="px-6 py-8 text-slate-400">Loading...</div>;
 
@@ -62,10 +63,13 @@ export default function TrendAnalysis() {
   return (
     <div className="px-6 py-8 max-w-4xl">
       <h2 className="text-2xl font-bold text-slate-800 mb-1">Trend Analysis</h2>
-      <button onClick={refreshAndReload} className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-800 mb-4">
+      <p className="text-slate-500 mb-2">How your financial health has moved over time, and where you stand now versus where you started.</p>
+      <button
+        onClick={refreshAndReload}
+        className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-[#1e3a5f] mb-6"
+      >
         <RefreshCw size={14} /> Refresh now
       </button>
-      <p className="text-slate-500 mb-6">How your financial health has moved over time, and where you stand now versus where you started.</p>
 
       {/* Score over time chart */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-[0_1px_3px_rgba(0,0,0,0.06)] p-6 mb-6">
